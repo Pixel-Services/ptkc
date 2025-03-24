@@ -14,7 +14,7 @@ To include ptkc in your project, add the following dependency and repository to 
 ### Dependency
 ```xml
 <dependency>
-    <groupId>com.pixelservices.logger</groupId>
+    <groupId>com.pixelservices.config</groupId>
     <artifactId>ptkc</artifactId>
     <version>${ptkcversion}</version>
 </dependency>
