@@ -1,7 +1,7 @@
 package com.pixelservices.config;
 
-import com.pixelservices.logger.Logger;
-import com.pixelservices.logger.LoggerFactory;
+import com.pixelservices.config.exception.ConfigException;
+import com.pixelservices.config.exception.ConfigSaveException;
 import org.simpleyaml.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -12,7 +12,6 @@ import java.io.InputStream;
  * The YamlConfig class provides utility methods for loading, saving, and managing YAML configuration files.
  */
 public class YamlConfig extends YamlConfiguration {
-    private static final Logger logger = LoggerFactory.getLogger(YamlConfig.class);
     private final String filePath;
     private final File file;
 
@@ -46,12 +45,10 @@ public class YamlConfig extends YamlConfiguration {
             if (resourceStream != null) {
                 load(resourceStream);
             } else {
-                logger.warn("Configuration file not found in JAR: " + filePath);
                 loadFromString("");
             }
         } catch (IOException e) {
-            logger.error("Failed to load configuration file from JAR: " + filePath, e);
-            throw new RuntimeException(e);
+            throw new ConfigException("Failed to load configuration file from JAR", e);
         }
     }
 
@@ -62,8 +59,7 @@ public class YamlConfig extends YamlConfiguration {
         try {
             load(file);
         } catch (IOException e) {
-            logger.error("Failed to load configuration file: " + file.getPath(), e);
-            throw new RuntimeException(e);
+            throw new ConfigException("Failed to load configuration file", e);
         }
     }
 
@@ -73,12 +69,11 @@ public class YamlConfig extends YamlConfiguration {
     public void save() {
         try {
             if (!file.exists() && !file.createNewFile()) {
-                logger.error("Failed to create configuration file: " + file.getPath());
                 return;
             }
             save(file);
         } catch (IOException e) {
-            logger.error("Failed to save configuration file: " + file.getPath(), e);
+            throw new ConfigSaveException("Failed to save configuration file", e);
         }
     }
 }
