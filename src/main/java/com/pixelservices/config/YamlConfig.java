@@ -11,7 +11,8 @@ import java.io.InputStream;
 /**
  * The YamlConfig class provides utility methods for loading, saving, and managing YAML configuration files.
  */
-public class YamlConfig extends YamlConfiguration {
+public class YamlConfig extends YamlConfiguration implements Config {
+    private final String jarPath;
     private final String filePath;
     private final File file;
 
@@ -28,8 +29,19 @@ public class YamlConfig extends YamlConfiguration {
      * @param path the path to the configuration file.
      */
     YamlConfig(String path) {
-        this.filePath = path;
-        this.file = new File(path);
+        this(path, path);
+    }
+
+    /**
+     * Constructs a YamlConfig instance with a specified jar path and save path.
+     *
+     * @param jarPath  the path to the configuration file in the JAR.
+     * @param filePath the path to the configuration file on disk.
+     */
+    YamlConfig(String jarPath, String filePath) {
+        this.jarPath = jarPath;
+        this.filePath = filePath;
+        this.file = new File(filePath);
         if (file.exists()) {
             loadConfigFromFile();
         } else {
@@ -41,7 +53,7 @@ public class YamlConfig extends YamlConfiguration {
      * Loads a YamlConfiguration from the file in the JAR.
      */
     private void loadConfigFromJar() {
-        try (InputStream resourceStream = YamlConfig.class.getClassLoader().getResourceAsStream(filePath)) {
+        try (InputStream resourceStream = YamlConfig.class.getClassLoader().getResourceAsStream(jarPath)) {
             if (resourceStream != null) {
                 load(resourceStream);
             } else {
@@ -68,10 +80,14 @@ public class YamlConfig extends YamlConfiguration {
      */
     public void save() {
         try {
-            if (!file.exists() && !file.createNewFile()) {
-                return;
+            File parentDir = file.getParentFile();
+            if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
+                throw new ConfigSaveException("Failed to create directories for configuration file: " + filePath);
             }
-            save(file);
+            if (!file.exists() && !file.createNewFile()) {
+                throw new ConfigSaveException("Failed to create configuration file: " + filePath);
+            }
+            super.save(file);
         } catch (IOException e) {
             throw new ConfigSaveException("Failed to save configuration file", e);
         }
